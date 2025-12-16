@@ -1,44 +1,28 @@
-:root {
-    --swipe-show-first: none;
-    --swipe-show-last: none;
-    --swipe-show-every: none;
+/* style.css */
 
-    --swipe-pad-first: 5px;
-    --swipe-pad-last: 5px;
-    --swipe-pad-every: 5px;
-}
+/* 移除 :root 變數設定 */
+/* 移除所有 .mes[...] .swipes-list-container 的 display 控制 */
 
-/* 確保容器在最上層，且接受滑鼠事件 */
+/* 保留核心樣式即可 */
 .swipes-list-container {
-    z-index: 99999 !important; /* 強制最高層級 */
+    z-index: 100; /* 調整層級，原本的 99999 有點太高 */
     background-color: transparent;
     border-radius: 15px;
-    pointer-events: auto !important; /* 強制允許滑鼠點擊 */
     
-    /* display: none; */
-    position: absolute;
-    right: 50px;
-    top: -5px;
-    width: 200px;
+    /* 讓它自然流動或絕對定位，視您的排版需求 */
+    /* 根據您提供的 HTML 結構，它是被 append 到 flex container 裡 */
+    margin-top: 5px; 
+    width: 100%;
+    min-width: 200px;
 }
 
-/* 選單本身也要確保能點 */
 .swipes-list-select {
     padding-block: 6px;
-	padding-inline: 10px;
-    background-color: rgba(0,0,0,0.2);
+    padding-inline: 10px;
+    background-color: rgba(0,0,0,0.5); /*稍微深一點比較清楚*/
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 5px;
     width: 100%;
-    pointer-events: auto !important; /* 強制允許滑鼠點擊 */
-    cursor: pointer; /* 讓滑鼠變手型，確認有點到 */
+    cursor: pointer;
+    color: var(--SmartThemeBodyColor); /* 確保文字顏色正確 */
 }
-
-/* Class 選擇器修正保持不變 */
-.mes[mesid="0"][is_user="false"] .swipes-list-container { display: var(--swipe-show-first) !important; }
-.mes[mesid="0"][is_user="false"] .mes_text { padding-bottom: var(--swipe-pad-first) !important; }
-
-.last_mes[is_user="false"] .swipes-list-container { display: var(--swipe-show-last) !important; }
-.last_mes[is_user="false"] .mes_text { padding-bottom: var(--swipe-pad-last) !important; }
-
-.mes[is_user="false"] .swipes-list-container { display: var(--swipe-show-every) }
-.mes[is_user="false"] .mes_text { padding-bottom: var(--swipe-pad-every) }

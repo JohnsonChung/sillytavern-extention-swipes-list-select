@@ -5,8 +5,8 @@ const { executeSlashCommandsWithOptions, saveSettingsDebounced } = SillyTavern.g
 
 export class SwipeList {
     constructor() {
-        const url = import.meta.url;
-        this.basePath = url.substring(0, url.lastIndexOf('/'));
+        this.name = "sillytavern-extention-swipes-list-select";
+        this.basePath = `scripts/extensions/third-party/${this.name}`;
         this.cooldown = 2000;
         this.lastPopulate = 0;
         

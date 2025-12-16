@@ -1,9 +1,7 @@
-import { extension_settings } from '../../../extensions.js';
-import { settings } from './settings.js';
 // 引入 SillyTavern 的事件系統，用於監聽聊天室變化與新訊息
 import { eventSource, event_types } from '../../../../script.js';
 
-const { executeSlashCommandsWithOptions, saveSettingsDebounced } = SillyTavern.getContext();
+const { executeSlashCommandsWithOptions } = SillyTavern.getContext();
 
 export class SwipeList {
     constructor() {
@@ -13,13 +11,6 @@ export class SwipeList {
         this.lastPopulate = 0;     // 上次請求的時間戳記
         this.templateHtml = "";    // 緩存 HTML 模板
 
-        // 設定檔對應表
-        this.toggles = [
-            { id: 'first', key: 'showFirst' },
-            { id: 'last', key: 'showLast' },
-            { id: 'every', key: 'showEvery' }
-        ];
-
         // 將實例掛載到 window 以便進行除錯或自我檢測
         window.swipeListExtension = this;
 
@@ -28,34 +19,23 @@ export class SwipeList {
 
     async init() {
         try {
-            // 平行載入 HTML 資源
-            const [indexHtml, settingsHtml] = await Promise.all([
-                $.get(`${this.basePath}/index.html`),
-                $.get(`${this.basePath}/swipeSettings.html`)
-            ]);
+            // 僅載入選單的 HTML 模板，不需要設定頁面了
+            this.templateHtml = await $.get(`${this.basePath}/index.html`);
 
-            // 1. 存下模板，不直接插入，稍後由 renderSwipesList 決定插入位置
-            this.templateHtml = indexHtml;
-
-            // 2. 插入設定選單到擴充功能設定區
-            $('[name="themeToggles"]').prepend(settingsHtml);
-
-            // 3. 綁定事件與還原設定
+            // 綁定事件
             this.bindEvents();
-            this.restoreSettings();
 
-            // 4. 初始渲染 (針對當前已開啟的聊天室)
+            // 初始渲染
             this.renderSwipesList();
             
-            console.log(`[${this.name}] Initialized`);
+            console.log(`[${this.name}] Initialized (Fixed to First Message)`);
         } catch (err) {
             console.error(`[${this.name}] Init Error:`, err);
         }
     }
 
     /**
-     * 核心渲染邏輯：根據設定決定將選單插入哪裡
-     * 已加入 try-catch 保護機制
+     * 核心渲染邏輯：強制只渲染在第一則訊息
      */
     renderSwipesList() {
         // A. 先清除所有現存的選單，避免重複或殘留
@@ -68,46 +48,14 @@ export class SwipeList {
         // 檢查模板是否已載入
         if (!this.templateHtml) return;
 
-        // B. 根據設定邏輯插入 DOM
-        
-        // 情況 1: 顯示在每一條訊息 (Every)
-        // 如果開啟 Every，直接全部插入後返回，因為這已經包含了 First 和 Last
-        if (settings.showEvery) {
-            try {
-                const target = $(".mes .swipeRightBlock");
-                if (target.length > 0) {
-                    target.append(this.templateHtml);
-                }
-            } catch (err) {
-                console.error(`[${this.name}] 渲染 'Every' 模式失敗:`, err);
+        // B. 僅針對第一則訊息 (mesid="0") 插入 DOM
+        try {
+            const target = $('.mes[mesid="0"] .swipeRightBlock');
+            if (target.length > 0) {
+                target.append(this.templateHtml);
             }
-            return; 
-        }
-
-        // 情況 2: 顯示在第一條訊息 (First)
-        if (settings.showFirst) {
-            try {
-                // 利用 mesid="0" 精準定位第一條訊息
-                const target = $('.mes[mesid="0"] .swipeRightBlock');
-                if (target.length > 0) {
-                    target.append(this.templateHtml);
-                }
-            } catch (err) {
-                console.error(`[${this.name}] 渲染 'First' 模式失敗:`, err);
-            }
-        }
-
-        // 情況 3: 顯示在最後一條訊息 (Last)
-        if (settings.showLast) {
-            try {
-                // 找到最後一個 .mes (排除打字中的狀態 .typing)
-                const target = $('.mes').not('.typing').last().find('.swipeRightBlock');
-                if (target.length > 0) {
-                    target.append(this.templateHtml);
-                }
-            } catch (err) {
-                console.error(`[${this.name}] 渲染 'Last' 模式失敗:`, err);
-            }
+        } catch (err) {
+            console.error(`[${this.name}] 渲染失敗:`, err);
         }
     }
 
@@ -115,21 +63,9 @@ export class SwipeList {
         const body = $(document.body);
 
         // --- 下拉選單互動事件 ---
-        // 使用 mousedown 以便在點擊瞬間就能觸發 populate，避免 click 的微小延遲
+        // 使用 mousedown 以便在點擊瞬間就能觸發 populate
         body.on('mousedown', '.swipes-list-select', (e) => this.handleDropdownClick(e));
         body.on('change', '.swipes-list-select', (e) => this.handleSelectionChange(e));
-
-        // --- 設定 Checkbox 變更事件 ---
-        this.toggles.forEach(({ id, key }) => {
-            body.on('change', `#checkbox-${id}mes`, (e) => {
-                const checked = e.target.checked;
-                settings[key] = checked;
-                saveSettingsDebounced(); // 儲存設定
-                
-                // 設定改變時，立即重新渲染 DOM
-                this.renderSwipesList();
-            });
-        });
 
         // --- SillyTavern 系統事件監聽 ---
         
@@ -140,17 +76,9 @@ export class SwipeList {
         });
         
         // 2. 當收到新訊息 (AI 回覆完畢) 或訊息被編輯後
+        // 雖然通常只影響後面，但為了防止編輯第一則訊息導致選單消失，這裡也保持監聽
         eventSource.on(event_types.MESSAGE_RECEIVED, () => {
              setTimeout(() => this.renderSwipesList(), 100);
-        });
-    }
-
-    restoreSettings() {
-        // 還原 Checkbox 的勾選狀態
-        this.toggles.forEach(({ id, key }) => {
-            const isChecked = settings[key];
-            const el = document.getElementById(`checkbox-${id}mes`);
-            if (el) el.checked = isChecked;
         });
     }
 
@@ -204,7 +132,6 @@ export class SwipeList {
             
         } catch (err) {
             console.error('[SwipeList] Error populating swipes:', err);
-            // 發生錯誤時，至少顯示一個錯誤提示選項
             select.empty().append('<option value="-1">Error loading swipes</option>');
         }
     }
@@ -279,14 +206,13 @@ export class SwipeList {
 
             // 2. DOM 測試
             const containerCount = $('.swipes-list-container').length;
-            if (settings.showEvery || settings.showFirst || settings.showLast) {
-                if ($('.mes').length > 0) {
-                     assert(containerCount > 0, `DOM 渲染檢查 (目前有 ${containerCount} 個選單)`);
-                } else {
-                    console.warn("⚠️ 聊天室無訊息，跳過 DOM 檢查");
-                }
+            const firstMesBlock = $('.mes[mesid="0"] .swipeRightBlock');
+            
+            if (firstMesBlock.length > 0) {
+                 // 如果有第一則訊息，檢查選單是否存在
+                 assert(containerCount > 0, "選單已成功渲染至第一則訊息");
             } else {
-                assert(containerCount === 0, "設定全關閉時，不應渲染選單");
+                console.warn("⚠️ 聊天室無第一則訊息 (可能未載入)，跳過 DOM 檢查");
             }
 
             console.log(`%c檢測完成: ${passed} 項通過`, "font-weight: bold");

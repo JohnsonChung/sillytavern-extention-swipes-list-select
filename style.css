@@ -1,33 +1,44 @@
-/* style.css */
+:root {
+    --swipe-show-first: flex;
+    --swipe-show-last: none;
+    --swipe-show-every: none;
 
-/* 1. 刪除 :root 區塊的變數定義 */
+    --swipe-pad-first: 5px;
+    --swipe-pad-last: 5px;
+    --swipe-pad-every: 5px;
+}
 
-/* 2. 保留 .swipes-list-container，但刪除 display: none */
+/* 確保容器在最上層，且接受滑鼠事件 */
 .swipes-list-container {
-    z-index: 99999 !important;
+    z-index: 99999 !important; /* 強制最高層級 */
     background-color: transparent;
     border-radius: 15px;
-    pointer-events: auto !important;
+    pointer-events: auto !important; /* 強制允許滑鼠點擊 */
     
-    /* 改為預設顯示，因為我們會用 JS 控制它是否存在 */
-    display: flex; 
-    
+    /* display: none; */
     position: absolute;
     right: 50px;
     top: -5px;
     width: 200px;
 }
 
-/* 3. 保留 .swipes-list-select */
+/* 選單本身也要確保能點 */
 .swipes-list-select {
     padding-block: 6px;
-    padding-inline: 10px;
+	padding-inline: 10px;
     background-color: rgba(0,0,0,0.2);
     border-radius: 5px;
     width: 100%;
-    pointer-events: auto !important;
-    cursor: pointer;
+    pointer-events: auto !important; /* 強制允許滑鼠點擊 */
+    cursor: pointer; /* 讓滑鼠變手型，確認有點到 */
 }
 
-/* 4. 刪除原本底下那些 .mes[mesid="0"]... 的控制邏輯 */
-/* 全部刪除，我們改用 JS 處理 padding 和 顯示 */
+/* Class 選擇器修正保持不變 */
+.mes[mesid="0"][is_user="false"] .swipes-list-container { display: var(--swipe-show-first) !important; }
+.mes[mesid="0"][is_user="false"] .mes_text { padding-bottom: var(--swipe-pad-first) !important; }
+
+.last_mes[is_user="false"] .swipes-list-container { display: var(--swipe-show-last) !important; }
+.last_mes[is_user="false"] .mes_text { padding-bottom: var(--swipe-pad-last) !important; }
+
+.mes[is_user="false"] .swipes-list-container { display: var(--swipe-show-every) }
+.mes[is_user="false"] .mes_text { padding-bottom: var(--swipe-pad-every) }

@@ -1,28 +1,49 @@
 /* style.css */
 
-/* 移除 :root 變數設定 */
-/* 移除所有 .mes[...] .swipes-list-container 的 display 控制 */
-
-/* 保留核心樣式即可 */
+/* 容器設定：使用絕對定位讓它脫離 Flex 排版流 */
 .swipes-list-container {
-    z-index: 99999; /* 調整層級，原本的 99999 有點太高 */
-    background-color: transparent;
-    border-radius: 15px;
+    position: absolute;      /* 關鍵：浮動定位，不佔用空間 */
+    right: 35px;             /* 靠右對齊，但往左偏移 35px (避開箭頭與計數器) */
+    top: 5px;                /* 與頂部對齊 */
     
-    /* 讓它自然流動或絕對定位，視您的排版需求 */
-    /* 根據您提供的 HTML 結構，它是被 append 到 flex container 裡 */
-    margin-top: 5px; 
-    width: 100%;
-    min-width: 200px;
+    width: 250px;            /* 設定合適的寬度，讓文字能顯示 */
+    z-index: 1000;           /* 確保在最上層 */
+    pointer-events: auto !important; /* 確保能被點擊 */
+    
+    /* 讓選單內容往右對齊 (RTL) 或保持預設，視需求而定 */
+    display: flex;
+    justify-content: flex-end;
 }
 
+/* 下拉選單本體樣式 */
 .swipes-list-select {
-    padding-block: 6px;
-    padding-inline: 10px;
-    background-color: rgba(0,0,0,0.5); /*稍微深一點比較清楚*/
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 5px;
-    width: 100%;
+    padding-block: 4px;
+    padding-inline: 8px;
+    
+    /* 半透明背景，融入 ST 主題 */
+    background-color: var(--SmartThemeBlurTintColor, rgba(0, 0, 0, 0.7)); 
+    backdrop-filter: blur(5px); /* 磨砂玻璃效果 (若瀏覽器支援) */
+    
+    border: 1px solid var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.3));
+    border-radius: 6px;
+    
+    width: 100%;             /* 填滿 container 設定的寬度 */
+    font-size: 0.9em;        /* 字體稍微縮小，比較精緻 */
+    color: var(--SmartThemeBodyColor, white);
+    
     cursor: pointer;
-    color: var(--SmartThemeBodyColor); /* 確保文字顏色正確 */
+    pointer-events: auto !important;
+    outline: none;           /* 移除點擊時的藍框 */
+}
+
+/* 滑鼠懸停時的視覺回饋 */
+.swipes-list-select:hover {
+    border-color: var(--SmartThemeAccentColor, #bbb);
+    background-color: var(--SmartThemeBlurTintColor, rgba(0, 0, 0, 0.8));
+}
+
+/* 選項樣式 */
+.swipes-list-select option {
+    background-color: var(--SmartThemeBgColor, #202020); /* 確保選項背景不透明 */
+    color: var(--SmartThemeBodyColor, white);
 }

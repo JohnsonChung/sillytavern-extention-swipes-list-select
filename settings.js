@@ -5,7 +5,7 @@ const {
 const extensionName = "sillytavern-extention-swipes-list-select";
 
 const defaultSettings = Object.freeze({
-    showFirst: false,
+    showFirst: true,
     showLast: false,
     showEvery: false
 });

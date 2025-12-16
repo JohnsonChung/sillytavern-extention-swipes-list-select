@@ -7,7 +7,7 @@ const { executeSlashCommandsWithOptions, saveSettingsDebounced } = SillyTavern.g
 
 export class SwipeList {
     constructor() {
-        this.name = "sillytavern-extention-swipes-list-select";
+        this.name = "swipes-list";
         this.basePath = `scripts/extensions/third-party/${this.name}`;
         this.cooldown = 2000;      // 防止頻繁請求的冷卻時間 (ms)
         this.lastPopulate = 0;     // 上次請求的時間戳記
@@ -55,11 +55,15 @@ export class SwipeList {
 
     /**
      * 核心渲染邏輯：根據設定決定將選單插入哪裡
-     * 這是取代原本 CSS 顯示/隱藏的關鍵方法
+     * 已加入 try-catch 保護機制
      */
     renderSwipesList() {
         // A. 先清除所有現存的選單，避免重複或殘留
-        $('.swipes-list-container').remove();
+        try {
+            $('.swipes-list-container').remove();
+        } catch (e) {
+            console.warn(`[${this.name}] 清除舊選單時發生錯誤:`, e);
+        }
 
         // 檢查模板是否已載入
         if (!this.templateHtml) return;
@@ -69,20 +73,41 @@ export class SwipeList {
         // 情況 1: 顯示在每一條訊息 (Every)
         // 如果開啟 Every，直接全部插入後返回，因為這已經包含了 First 和 Last
         if (settings.showEvery) {
-            $(".mes .swipeRightBlock").append(this.templateHtml);
+            try {
+                const target = $(".mes .swipeRightBlock");
+                if (target.length > 0) {
+                    target.append(this.templateHtml);
+                }
+            } catch (err) {
+                console.error(`[${this.name}] 渲染 'Every' 模式失敗:`, err);
+            }
             return; 
         }
 
         // 情況 2: 顯示在第一條訊息 (First)
         if (settings.showFirst) {
-            // 利用 mesid="0" 精準定位第一條訊息
-            $('.mes[mesid="0"] .swipeRightBlock').append(this.templateHtml);
+            try {
+                // 利用 mesid="0" 精準定位第一條訊息
+                const target = $('.mes[mesid="0"] .swipeRightBlock');
+                if (target.length > 0) {
+                    target.append(this.templateHtml);
+                }
+            } catch (err) {
+                console.error(`[${this.name}] 渲染 'First' 模式失敗:`, err);
+            }
         }
 
         // 情況 3: 顯示在最後一條訊息 (Last)
         if (settings.showLast) {
-            // 找到最後一個 .mes (排除打字中的狀態 .typing)
-            $('.mes').not('.typing').last().find('.swipeRightBlock').append(this.templateHtml);
+            try {
+                // 找到最後一個 .mes (排除打字中的狀態 .typing)
+                const target = $('.mes').not('.typing').last().find('.swipeRightBlock');
+                if (target.length > 0) {
+                    target.append(this.templateHtml);
+                }
+            } catch (err) {
+                console.error(`[${this.name}] 渲染 'Last' 模式失敗:`, err);
+            }
         }
     }
 
@@ -135,14 +160,18 @@ export class SwipeList {
     async handleDropdownClick(e) {
         e.stopPropagation(); // 防止觸發訊息本身的點擊事件
         
-        const select = $(e.currentTarget);
-        
-        // 檢查：如果已有選項 (>1 代表除了預設選項外還有別的) 或在冷卻中，則跳過
-        if (select.children('option').length > 1) return;
-        if (Date.now() - this.lastPopulate < this.cooldown) return;
+        try {
+            const select = $(e.currentTarget);
+            
+            // 檢查：如果已有選項 (>1 代表除了預設選項外還有別的) 或在冷卻中，則跳過
+            if (select.children('option').length > 1) return;
+            if (Date.now() - this.lastPopulate < this.cooldown) return;
 
-        this.lastPopulate = Date.now();
-        await this.populateSwipes(select);
+            this.lastPopulate = Date.now();
+            await this.populateSwipes(select);
+        } catch (err) {
+            console.error(`[${this.name}] 下拉選單點擊處理錯誤:`, err);
+        }
     }
 
     /**
@@ -175,6 +204,8 @@ export class SwipeList {
             
         } catch (err) {
             console.error('[SwipeList] Error populating swipes:', err);
+            // 發生錯誤時，至少顯示一個錯誤提示選項
+            select.empty().append('<option value="-1">Error loading swipes</option>');
         }
     }
 
@@ -183,13 +214,17 @@ export class SwipeList {
      */
     async handleSelectionChange(e) {
         e.stopPropagation();
-        const select = $(e.currentTarget);
-        const idx = select.val();
-        const mesId = select.closest('.mes').attr('mesid');
+        try {
+            const select = $(e.currentTarget);
+            const idx = select.val();
+            const mesId = select.closest('.mes').attr('mesid');
 
-        // idx >= 0 代表選中了有效的 swipe (不是預設提示選項)
-        if (idx >= 0 && mesId) {
-            await executeSlashCommandsWithOptions(`/swipes-go message=${mesId} ${idx}`);
+            // idx >= 0 代表選中了有效的 swipe (不是預設提示選項)
+            if (idx >= 0 && mesId) {
+                await executeSlashCommandsWithOptions(`/swipes-go message=${mesId} ${idx}`);
+            }
+        } catch (err) {
+            console.error(`[${this.name}] 切換 Swipe 失敗:`, err);
         }
     }
 
@@ -199,20 +234,25 @@ export class SwipeList {
     formatTitle(text) {
         if (!text) return "Empty swipe";
         
-        // 嘗試抓取第一句話 (以 . ! ? 結尾)
-        const match = text.match(/^[^.!?]*[.!?]/);
-        if (match && match[0].length <= 60) return match[0].trim();
+        try {
+            // 嘗試抓取第一句話 (以 . ! ? 結尾)
+            const match = text.match(/^[^.!?]*[.!?]/);
+            if (match && match[0].length <= 60) return match[0].trim();
 
-        // 如果沒有明顯句點，或第一句太長，則進行截斷
-        const max = 50;
-        if (text.length <= max) return text;
-        
-        let sub = text.substring(0, max);
-        const lastSpace = sub.lastIndexOf(' ');
-        // 避免截斷在單字中間
-        if (lastSpace > max * 0.7) sub = sub.substring(0, lastSpace);
-        
-        return `${sub.trim()}...`;
+            // 如果沒有明顯句點，或第一句太長，則進行截斷
+            const max = 50;
+            if (text.length <= max) return text;
+            
+            let sub = text.substring(0, max);
+            const lastSpace = sub.lastIndexOf(' ');
+            // 避免截斷在單字中間
+            if (lastSpace > max * 0.7) sub = sub.substring(0, lastSpace);
+            
+            return `${sub.trim()}...`;
+        } catch (err) {
+            console.error(`[${this.name}] 標題格式化錯誤:`, err);
+            return text.substring(0, 20) + "..."; // 降級處理
+        }
     }
 
     /**

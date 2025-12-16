@@ -158,7 +158,7 @@ async populateSwipes(select) {
             console.error('[SwipeList] Error populating swipes:', err);
             select.empty().append('<option value="-1">Error loading swipes</option>');
         }
-
+}
     /**
      * 處理選項變更：切換到選定的 Swipe
      */

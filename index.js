@@ -105,36 +105,59 @@ export class SwipeList {
     /**
      * 呼叫 Slash Commands 獲取 Swipes 並填入選單
      */
-    async populateSwipes(select) {
-        // 往上找 .mes 容器取得 mesid
+async populateSwipes(select) {
+        // 1. 取得 mesId
         const mesId = select.closest('.mes').attr('mesid');
-        if (!mesId) return console.warn('[SwipeList] No mesid found');
+        if (!mesId) return console.warn('[SwipeList] 找不到 mesid');
+
+        console.log(`[SwipeList] 正在載入 MesID: ${mesId} 的 Swipes...`);
 
         try {
-            // 取得 swipe 總數
+            // 2. 取得 swipe 總數
             const countRes = await executeSlashCommandsWithOptions(`/swipes-count message=${mesId}`);
-            const count = parseInt(countRes.pipe);
+            
+            // 除錯：印出原始回傳值，看看它是什麼
+            console.log('[SwipeList] /swipes-count 回傳原始資料:', countRes);
 
-            if (isNaN(count)) return;
+            // 【修正點】：同時支援物件(.pipe)與直接字串的回傳
+            // 很多時候 countRes 可能直接就是 "5" 這樣的字串
+            const countRaw = (countRes && countRes.pipe) ? countRes.pipe : countRes;
+            const count = parseInt(countRaw);
 
-            // 構建 HTML 字串
+            console.log(`[SwipeList] 解析出的數量: ${count} (原始值: ${countRaw})`);
+
+            if (isNaN(count)) {
+                console.error('[SwipeList] 解析數量失敗，停止載入。');
+                return;
+            }
+
+            if (count === 0) {
+                 select.empty().append('<option value="-1">No swipes found</option>');
+                 return;
+            }
+
+            // 3. 構建 HTML 字串
             let optionsHtml = '<option value="-1">Select a swipe...</option>';
             
             for (let i = 0; i < count; i++) {
-                // 取得每一個 swipe 的內容文字
                 const res = await executeSlashCommandsWithOptions(`/swipes-get message=${mesId} ${i}`);
-                const text = res.pipe || res; // 相容不同的回傳格式
-                optionsHtml += `<option value="${i}">${i + 1}: ${this.formatTitle(text)}</option>`;
+                // 同樣做相容性處理
+                const text = (res && res.pipe) ? res.pipe : res;
+                
+                // 為了避免標題太亂，如果取不到文字就顯示 Swipe #i
+                const displayTitle = text ? this.formatTitle(text) : `Swipe #${i + 1}`;
+                
+                optionsHtml += `<option value="${i}">${i + 1}: ${displayTitle}</option>`;
             }
 
-            // 清空並填入新選項
+            // 4. 清空並填入新選項
             select.empty().append(optionsHtml);
+            console.log(`[SwipeList] 成功載入 ${count} 個選項`);
             
         } catch (err) {
             console.error('[SwipeList] Error populating swipes:', err);
             select.empty().append('<option value="-1">Error loading swipes</option>');
         }
-    }
 
     /**
      * 處理選項變更：切換到選定的 Swipe

@@ -5,7 +5,7 @@
 
 /* 保留核心樣式即可 */
 .swipes-list-container {
-    z-index: 100; /* 調整層級，原本的 99999 有點太高 */
+    z-index: 99999; /* 調整層級，原本的 99999 有點太高 */
     background-color: transparent;
     border-radius: 15px;
     

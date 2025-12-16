@@ -1,19 +1,20 @@
-# sillytavern-extention-swipes-list-selectt
+# sillytavern-extention-swipes-list-select
 
 ### What does it do?
 
 ```
-Populates the dropdown list with the loaded swipes and adds buttons to switch to that swipe.
+Populates the dropdown list with the loaded swipes and
+adds buttons to switch to that swipe.
 ```
 
 This is a Fork and Rewrite edition.
 
 
-# Requirements
+## Requirements
 [LaLib Extension](https://github.com/LenAnderson/SillyTavern-LALib)
 
 
-# Method
+## Method
 Sillytavern env with Chrome console
 ``` 
 // Test method

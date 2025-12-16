@@ -7,7 +7,7 @@ const { executeSlashCommandsWithOptions, saveSettingsDebounced } = SillyTavern.g
 
 export class SwipeList {
     constructor() {
-        this.name = "swipes-list";
+        this.name = "sillytavern-extention-swipes-list-select";
         this.basePath = `scripts/extensions/third-party/${this.name}`;
         this.cooldown = 2000;      // 防止頻繁請求的冷卻時間 (ms)
         this.lastPopulate = 0;     // 上次請求的時間戳記

@@ -14,8 +14,7 @@
     background-color: transparent;
     border-radius: 15px;
     pointer-events: auto !important; /* 強制允許滑鼠點擊 */
-
-    display: none;
+    
     position: absolute;
     right: 50px;
     top: -5px;

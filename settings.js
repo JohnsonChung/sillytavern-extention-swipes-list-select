@@ -2,7 +2,7 @@ const {
     extensionSettings,
 } = SillyTavern.getContext();
 
-const extensionName = "swipes-list";
+const extensionName = "sillytavern-extention-swipes-list-select";
 
 const defaultSettings = Object.freeze({
     showFirst: false,

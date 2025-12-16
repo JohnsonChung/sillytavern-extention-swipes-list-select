@@ -14,3 +14,7 @@ ___
 
 [LaLib Extension](https://github.com/LenAnderson/SillyTavern-LALib)
 
+---
+
+chrome console test method
+```window.swipeListExtension.runSelfTest();```

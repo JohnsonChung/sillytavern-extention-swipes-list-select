@@ -5,7 +5,7 @@ const { executeSlashCommandsWithOptions, saveSettingsDebounced } = SillyTavern.g
 
 class SwipeList {
     constructor() {
-        this.name = "swipes-list";
+        this.name = "sillytavern-extention-swipes-list-select";
         
         // --- 修正開始 ---
         // 不再寫死路徑，而是自動抓取 index.js 所在的資料夾

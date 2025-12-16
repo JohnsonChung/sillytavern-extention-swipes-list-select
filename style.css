@@ -1,5 +1,5 @@
 :root {
-    --swipe-show-first: flex;
+    --swipe-show-first: none;
     --swipe-show-last: none;
     --swipe-show-every: none;
 

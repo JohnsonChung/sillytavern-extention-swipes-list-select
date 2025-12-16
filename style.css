@@ -8,11 +8,12 @@
     --swipe-pad-every: 5px;
 }
 
-
-#swipes-list-container {
-    z-index: 1000;
+/* 確保容器在最上層，且接受滑鼠事件 */
+.swipes-list-container {
+    z-index: 99999 !important; /* 強制最高層級 */
     background-color: transparent;
     border-radius: 15px;
+    pointer-events: auto !important; /* 強制允許滑鼠點擊 */
 
     display: none;
     position: absolute;
@@ -21,20 +22,23 @@
     width: 200px;
 }
 
-#swipes-list-select {
+/* 選單本身也要確保能點 */
+.swipes-list-select {
     padding-block: 6px;
 	padding-inline: 10px;
     background-color: rgba(0,0,0,0.2);
     border-radius: 5px;
     width: 100%;
+    pointer-events: auto !important; /* 強制允許滑鼠點擊 */
+    cursor: pointer; /* 讓滑鼠變手型，確認有點到 */
 }
 
-.mes[mesid="0"][is_user="false"] #swipes-list-container { display: var(--swipe-show-first) !important; }
+/* Class 選擇器修正保持不變 */
+.mes[mesid="0"][is_user="false"] .swipes-list-container { display: var(--swipe-show-first) !important; }
 .mes[mesid="0"][is_user="false"] .mes_text { padding-bottom: var(--swipe-pad-first) !important; }
 
-
-.last_mes[is_user="false"] #swipes-list-container { display: var(--swipe-show-last) !important; }
+.last_mes[is_user="false"] .swipes-list-container { display: var(--swipe-show-last) !important; }
 .last_mes[is_user="false"] .mes_text { padding-bottom: var(--swipe-pad-last) !important; }
 
-.mes[is_user="false"] #swipes-list-container { display: var(--swipe-show-every) }
+.mes[is_user="false"] .swipes-list-container { display: var(--swipe-show-every) }
 .mes[is_user="false"] .mes_text { padding-bottom: var(--swipe-pad-every) }

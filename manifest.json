@@ -1,11 +1,11 @@
 {
-    "display_name": "Swipe List",
+    "display_name": "Sillytavern Extention Swipes List Select",
     "loading_order": 9,
     "requires": [],
     "optional": [],
     "js": "index.js",
     "css": "style.css",
-    "author": "anonornot",
-    "version": "1.0.0",
+    "author": "jctneko",
+    "version": "1.0.0", 
     "homePage": ""
 }

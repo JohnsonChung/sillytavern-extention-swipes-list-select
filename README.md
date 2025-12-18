@@ -8,6 +8,7 @@ adds buttons to switch to that swipe.
 ```
 
 This is a Fork and Rewrite edition.
+<img width="542" height="244" alt="image" src="https://github.com/user-attachments/assets/e3b47482-ac57-4426-ab34-535c3c4422f5" />
 
 
 ## Requirements
